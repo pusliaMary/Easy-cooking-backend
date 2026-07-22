@@ -1,31 +1,29 @@
 const mongoose = require("mongoose");
 
-const imageSchema = new mongoose.Schema({
-  src: { type: String, required: true },
-  });
+const ingredientItemSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true }
+}, { _id: false });
 
-const descriptionSchema = new mongoose.Schema({
-  ingredients: { type: String, required: true },
-  process: { type: String, required: true },
+const recipeSchema = new mongoose.Schema({
+  imgSource: { type: String, required: true, trim: true },
+  title: { type: String, required: true, trim: true, index: true },
+  category: { type: String, required: true, trim: true },
+  
+  ingredients: { 
+    type: [ingredientItemSchema], 
+    required: [true, "Список ингредиентов обязателен"] 
+  },
+  
+  steps: { 
+    type: [String], 
+    required: [true, "Шаги приготовления обязательны"] 
+  },
+  keyWords: { 
+    type: [String], 
+    required: [true, "Шаги приготовления обязательны"] 
+  }
+}, {
+  timestamps: true
 });
 
-const keywordsSchema = new mongoose.Schema({
-  word: { type: String, required: true }
-  });
-
-const recipeSchema = new mongoose.Schema(
-  {
-
-    category: { type: String, required: true },
-    title: { type: String, required: true },
-    image: {type: imageSchema, required: true},
-    description: { type: descriptionSchema, required: true },
-    keywords: { type: [keywordsSchema], required: true },
-
-  },
-  {
-    timestamps: true,
-  },
-);
-
-module.exports = mongoose.model('Recipe', recipeSchema)
+module.exports = mongoose.model("Recipe", recipeSchema);
