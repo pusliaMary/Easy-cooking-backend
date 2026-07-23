@@ -11,10 +11,7 @@ module.exports.getRecipes = async (req, res) => {
 }
 
 module.exports.saveRecipe = async (req, res) => {
-    
-    const { title, imgSource, category, ingredients, steps, keyWords } = req.body;
-    
-    recipe.create({ title, imgSource, category, ingredients, steps, keyWords })
+    recipe.create(req.body) 
         .then((data) => {
             console.log("Recipe added")
             res.status(201).send(data)
@@ -47,9 +44,9 @@ module.exports.deleteRecipe = async (req, res) => {
 };
 
 module.exports.editRecipe = async (req, res) => {
-    const { _id, title, imgSource, category, ingredients, steps, keyWords } = req.body;
+    const { _id, ...updateData } = req.body;
     
-    recipe.findByIdAndUpdate(_id, { title, imgSource, category, ingredients, steps, keyWords }, { returnDocument: 'after' })
+    recipe.findByIdAndUpdate(_id, updateData, { returnDocument: 'after', runValidators: true })
         .then((data) => {
             if (!data) return res.status(404).send('Recipe not found')
             res.send(data)
@@ -57,7 +54,7 @@ module.exports.editRecipe = async (req, res) => {
         .catch(err => {
             console.log("Error occurred")
             res.status(400).send({ error: err.message })
-        })
+    })
 }
 
 
