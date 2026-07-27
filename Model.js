@@ -13,7 +13,7 @@ const recipeSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true, index: true },
   
   category: { 
-    type: [String],
+    type: String,
     required: [true, "Category is required"],
     enum: {
       values: CATEGORIES,
