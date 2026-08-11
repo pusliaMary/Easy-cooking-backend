@@ -1,12 +1,14 @@
 const express = require('express')
 const app = express()
-
 const mongoose = require('mongoose')
-const routes = require('./Routes')
 const cors = require('cors')
 require('dotenv').config()
 mongoose.set('strictQuery', false)
 const PORT = process.env.PORT || 8000
+
+const authRoutes = require('./login/routes');
+const routes = require('./recipes/routes');
+const { notFound, errorHandler } = require('./auth/error.middleware')
 
 const allowedOrigins = [
     "https://easy-cooking-back.onrender.com",
@@ -36,13 +38,18 @@ app.options("/*any", cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
 app.use(cors())
+app.use(cookieParser());
 
 mongoose
     .connect(process.env.MONGODB_LINK)
     .then(()=> console.log("We are connected to Mongo"))
     .catch(err => console.log(err)) 
 
-app.use(routes)
+app.use('/api', authRoutes);
+app.use('/api', routes)
+
+app.use(notFound)
+app.use(errorHandler)
 
 app.listen(PORT, ()=> {
     console.log(`I'm listening to port ${PORT}`)
