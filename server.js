@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
 require('dotenv').config()
 mongoose.set('strictQuery', false)
 const PORT = process.env.PORT || 8000
