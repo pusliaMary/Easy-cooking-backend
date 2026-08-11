@@ -9,7 +9,7 @@ mongoose.set('strictQuery', false)
 const PORT = process.env.PORT || 8000
 
 const allowedOrigins = [
-    "https://easy-cooking-backend.onrender.com",
+    "https://easy-cooking-back.onrender.com",
     "http://localhost:3000",
     "http://localhost:8000"
 ];

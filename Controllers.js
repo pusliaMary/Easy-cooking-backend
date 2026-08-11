@@ -60,13 +60,3 @@ module.exports.editRecipe = async (req, res) => {
 
 
 
-
-
-
-// module.exports.editRecipe = async (req, res) => {
-//     const { _id, title } = req.body;
-//     recipe.findByIdAndUpdate (_id, {title})
-//     .then(()=> res.send("Meal edited"))
-//     .catch(err => console.log("Error occured"))
-// }
-
