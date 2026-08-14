@@ -46,7 +46,7 @@ mongoose
     .catch(err => console.log(err)) 
 
 app.use('/api', authRoutes);
-app.use('/api', routes)
+app.use('/api/recipes', routes)
 
 app.use(notFound)
 app.use(errorHandler)
