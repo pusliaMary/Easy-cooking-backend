@@ -8,7 +8,7 @@ mongoose.set('strictQuery', false)
 const PORT = process.env.PORT || 8000
 
 const authRoutes = require('./login/routes');
-const routes = require('./recipes/routes');
+const routes = require('./recipes/routes')
 const { notFound, errorHandler } = require('./auth/error.middleware')
 
 const allowedOrigins = [
@@ -38,7 +38,6 @@ app.options("/*any", cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
-app.use(cors())
 app.use(cookieParser());
 
 mongoose
