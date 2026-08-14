@@ -4,7 +4,7 @@ const {
   saveRecipe,
   deleteRecipe,
   editRecipe,
-} = require("./controllers");
+} = require("./controller");
 const { authenticate } = require('../auth/auth.middleware')
 
 
