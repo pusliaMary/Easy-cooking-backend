@@ -32,13 +32,14 @@ const corsOptions = {
 };
 
 
-
+app.use(cookieParser());
+app.use(express.json());
 app.use(cors(corsOptions));
 app.options("/*any", cors(corsOptions));
 
-app.use(express.json());
+
 app.use(express.urlencoded({extended: true}))
-app.use(cookieParser());
+
 
 mongoose
     .connect(process.env.MONGODB_LINK)
