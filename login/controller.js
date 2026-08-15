@@ -10,8 +10,11 @@ module.exports.authController = {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
 
-      
       const { accessToken } = generateTokens(username);
+
+      if (typeof res.cookie !== 'function') {
+        throw new Error("Библиотека cookie-parser не подключена или подключена неправильно в app.js!");
+      }
 
       res.cookie('authToken', accessToken, {
         httpOnly: true,
@@ -23,18 +26,17 @@ module.exports.authController = {
       return res.json({ username });
 
     } catch (err) {
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ 
+        message: 'Internal server error', 
+        dev_message: err.message, 
+        stack: err.stack 
+      });
     }
   },
 
   logout(_, res) {
     try {
-      res.clearCookie('authToken', {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none'
-      });
-      
+      res.clearCookie('authToken', { httpOnly: true, secure: true, sameSite: 'none' });
       return res.status(200).json({ message: 'Logout successful' });
     } catch (e) {
       return res.status(500).json({ message: 'Internal server error. Please Try again later.' });
