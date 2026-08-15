@@ -1,26 +1,17 @@
 const jwt = require('jsonwebtoken');
 
-module.exports.generateTokens = (username) => {
-	const accessToken = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '24h' });
-	return { accessToken };
-};
-
 module.exports.authenticate = (req, res, next) => {
-	const authHeader = req.headers.authorization;
+  const token = req.cookies ? req.cookies.authToken : null;
 
-	if (!authHeader) {
-		return res.status(401).json({ message: "Токен отсутствует" });
-	}
+  if (!token) {
+    return res.status(401).json({ message: "Токен отсутствует или сессия истекла" });
+  }
 
-	const token = authHeader.startsWith("Bearer ")
-		? authHeader.slice(7)
-		: authHeader;
-
-	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		req.username = decoded.username;
-		next();
-	} catch (err) {
-		return res.status(401).json({ message: "Недействительный токен" });
-	}
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.username = decoded.username;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Недействительный токен" });
+  }
 };
