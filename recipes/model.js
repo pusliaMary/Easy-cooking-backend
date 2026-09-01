@@ -3,13 +3,14 @@ const mongoose = require("mongoose");
 const PROTEINS = ["meat", "poultry", "seafood", "vegan"];
 const CATEGORIES = ["salad", "soup", "garnish", "mainCourse", "dessert", "drink"];
 
-
-const ingredientItemSchema = new mongoose.Schema({ //  могут появиться новые поля (количество, единицы измерения)
+const ingredientItemSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true } 
 }, { _id: false });
 
 const recipeSchema = new mongoose.Schema({
+  
   imgSource: { type: String, required: true, trim: true },
+  
   title: { type: String, required: true, trim: true, index: true },
   
   category: { 
@@ -46,18 +47,19 @@ const recipeSchema = new mongoose.Schema({
   ingredients: { 
     type: [ingredientItemSchema], 
     required: [true, "Ingredients list is required"],
-    validate: [v => Array.isArray(v) && v.length > 0, "Ingredients list cannot be empty"]
+    validate: [v => Array.isArray(v) && v.length >= 3, "Ingredients list must contain at least 3 items"]
   },
   
   steps: { 
     type: [String], 
     required: [true, "Cooking steps list is required"],
-    validate: [v => Array.isArray(v) && v.length > 0, "Steps list cannot be empty"]
+    validate: [v => Array.isArray(v) && v.length >= 2, "Steps list must contain at least 2 steps"]
   },
   
   keyWords: { 
     type: [String], 
-    required: [true, "KeyWords list is required"] 
+    required: [true, "KeyWords list is required"],
+    validate: [v => Array.isArray(v) && v.length >= 2, "KeyWords list must contain at least 2 keywords"]
   }
 }, {
   timestamps: true
