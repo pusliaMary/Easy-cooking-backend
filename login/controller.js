@@ -34,6 +34,15 @@ module.exports.authController = {
     }
   },
 
+  
+  async checkAuth(req, res) {
+    try {
+      return res.json({ username: req.username });
+    } catch (err) {
+      return res.status(401).json({ message: "Сессия недействительна" });
+    }
+  }, 
+
   logout(_, res) {
     try {
       res.clearCookie('authToken', { httpOnly: true, secure: true, sameSite: 'none' });
