@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const PROTEINS = ["meat", "poultry", "seafood", "vegan"];
-const CATEGORIES = ["salad", "soup", "garnish", "mainCourse", "dessert", "drink"];
+const CATEGORIES = ["salad", "soup", "garnish", "main Course", "dessert", "drink"];
 
 const ingredientItemSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true } 
