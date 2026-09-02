@@ -13,6 +13,7 @@ const { notFound, errorHandler } = require('./auth/error.middleware')
 
 const allowedOrigins = [
     "https://easy-cooking-back.onrender.com",
+    "https://lazy-cooking.netlify.app",
     "http://localhost:3000",
     "http://localhost:8000"
 ];
@@ -35,7 +36,7 @@ const corsOptions = {
 app.use(cookieParser());
 app.use(express.json());
 app.use(cors(corsOptions));
-app.options("/*any", cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 
 app.use(express.urlencoded({extended: true}))
