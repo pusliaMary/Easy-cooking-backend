@@ -1,15 +1,16 @@
-const express = require('express')
-const app = express()
-const mongoose = require('mongoose')
-const cors = require('cors')
-const cookieParser = require('cookie-parser')
-require('dotenv').config()
-mongoose.set('strictQuery', false)
-const PORT = process.env.PORT || 8000
+const express = require('express');
+const app = express();
+const mongoose = require('mongoose');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+require('dotenv').config();
+
+mongoose.set('strictQuery', false);
+const PORT = process.env.PORT || 8000;
 
 const authRoutes = require('./login/routes');
-const routes = require('./recipes/routes')
-const { notFound, errorHandler } = require('./auth/error.middleware')
+const routes = require('./recipes/routes');
+const { notFound, errorHandler } = require('./auth/error.middleware');
 
 const allowedOrigins = [
     "https://easy-cooking-back.onrender.com",
@@ -32,30 +33,34 @@ const corsOptions = {
     credentials: true,
 };
 
-
-app.use(cookieParser());
-app.use(express.json());
+app.disable('x-powered-by');
 app.use(cors(corsOptions));
 app.options('*any', cors(corsOptions));
 
-
-
-app.use(express.urlencoded({extended: true}))
-
-
-mongoose
-    .connect(process.env.MONGODB_LINK)
-    .then(()=> console.log("We are connected to Mongo"))
-    .catch(err => console.log(err)) 
+app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', authRoutes);
-app.use('/api/recipes', routes)
+app.use('/api/recipes', routes);
+
 app.use('/uploads', express.static('uploads'));
 
-app.use(notFound)
-app.use(errorHandler)
+app.use(notFound);
+app.use(errorHandler);
 
-app.listen(PORT, ()=> {
-    console.log(`I'm listening to port ${PORT}`)
-})
+const startServer = async () => {
+    try {
+        await mongoose.connect(process.env.MONGODB_LINK);
+        console.log("We are connected to Mongo successfully");
+        
+        app.listen(PORT, () => {
+            console.log(`I'm listening to port ${PORT}`);
+        });
+    } catch (err) {
+        console.error("Database initialization failed:", err);
+        process.exit(1);
+    }
+};
 
+startServer();
