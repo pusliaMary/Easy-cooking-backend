@@ -50,6 +50,7 @@ mongoose
 
 app.use('/api', authRoutes);
 app.use('/api/recipes', routes)
+app.use('/uploads', express.static('uploads'));
 
 app.use(notFound)
 app.use(errorHandler)
