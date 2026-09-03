@@ -13,6 +13,8 @@ const router = Router();
 router.get("/", getRecipes);                           
 router.post("/saveRecipe", authenticate, saveRecipe);
 router.delete("/deleteRecipe", authenticate, deleteRecipe);
-router.put("/editRecipe", authenticate, editRecipe); 
+router.put("/editRecipe", authenticate, editRecipe);
+
+ 
 
 module.exports = router;
