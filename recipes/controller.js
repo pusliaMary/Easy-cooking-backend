@@ -22,24 +22,31 @@ module.exports.saveRecipe = async (req, res) => {
         })
 }
 
-module.exports.deleteRecipe = async (req, res) => {
+module.exports.deleteRecipe = async (req, res, next) => {
     try {
-        const { _id } = req.body;
+        const { id } = req.params; 
 
-        if (!_id) {
-            return res.status(400).send('ID не указан в запросе');
+        if (!id) {
+            res.status(400);
+            throw new Error('ID рецепта не указан в параметрах URL запроса');
         }
 
-        const data = await recipe.findByIdAndDelete(_id);
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            res.status(400);
+            throw new Error('Передан некорректный формат ID (Invalid ObjectId)');
+        }
+
+        const data = await recipe.findByIdAndDelete(id);
         
         if (!data) {
-            return res.status(404).send('Recipe not found');
+            res.status(404);
+            throw new Error('Рецепт с указанным ID не найден в базе данных');
         }
         
-        res.send('Recipe deleted');
+        return res.status(200).json({ success: true, message: 'Recipe deleted' });
+
     } catch (err) {
-        console.error("Error occurred:", err);
-        res.status(500).send({ error: "Ошибка при удалении" });
+        next(err); 
     }
 };
 
