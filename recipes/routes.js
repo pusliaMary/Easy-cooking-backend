@@ -7,6 +7,7 @@ const {
   saveRecipe,
   deleteRecipe,
   editRecipe,
+  getRecipeById,
 } = require("./controller");
 const { authenticate } = require('../auth/auth.middleware');
 
@@ -29,7 +30,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 const router = Router();
 
-router.get("/", getRecipes);                           
+router.get("/", getRecipes);
+router.get("/:id", getRecipeById);                           
 router.post("/", authenticate, saveRecipe);
 router.delete("/:id", authenticate, deleteRecipe);
 router.put("/:id", authenticate, editRecipe);

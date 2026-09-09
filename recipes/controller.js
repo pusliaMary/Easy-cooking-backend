@@ -10,6 +10,28 @@ module.exports.getRecipes = async (req, res) => {
     }
 }
 
+module.exports.getRecipeById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const mongoose = require("mongoose");
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).send({ error: "Некорректный формат ID рецепта" });
+        }
+
+        const foundRecipe = await recipe.findById(id);
+        
+        if (!foundRecipe) {
+            return res.status(404).send({ error: "Рецепт с указанным ID не найден" });
+        }
+
+        res.status(200).send(foundRecipe);
+    } catch (err) {
+        console.error("Error getting recipe by id:", err.message);
+        res.status(500).send({ error: "Ошибка при получении данных рецепта" });
+    }
+};
+
 module.exports.saveRecipe = async (req, res) => {
     recipe.create(req.body) 
         .then((data) => {
