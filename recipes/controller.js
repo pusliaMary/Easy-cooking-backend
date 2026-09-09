@@ -51,18 +51,27 @@ module.exports.deleteRecipe = async (req, res, next) => {
 };
 
 module.exports.editRecipe = async (req, res) => {
-    const { _id, ...updateData } = req.body;
     
-    recipe.findByIdAndUpdate(_id, updateData, { returnDocument: 'after', runValidators: true })
+    const { id } = req.params; 
+    const updateData = req.body;
+    
+    
+    const mongoose = require("mongoose");
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).send({ error: 'Некорректный формат ID рецепта' });
+    }
+    
+    recipe.findByIdAndUpdate(id, updateData, { returnDocument: 'after', runValidators: true })
         .then((data) => {
             if (!data) return res.status(404).send('Recipe not found')
             res.send(data)
         })
         .catch(err => {
-            console.log("Error occurred")
+            console.log("Error occurred during update:", err.message)
             res.status(400).send({ error: err.message })
     })
 }
+
 
 
 
