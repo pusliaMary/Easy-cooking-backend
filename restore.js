@@ -13,44 +13,44 @@ async function run() {
     const collection = db.collection('recipes');
 
     const recipes = await collection.find({}).toArray();
-    console.log(`🔍 Всего рецептов в базе: ${recipes.length}`);
+    console.log('🔍 Проверяем рецепты в базе. Всего: ' + recipes.length);
 
     let restoredCount = 0;
 
     for (const recipe of recipes) {
       const currentUrl = recipe.imgSource || '';
-      const title = recipe.title || 'food';
-
-      // Ищем валидный ID Unsplash в строке, если он там есть
-      const match = currentUrl.match(/(photo-[a-zA-Z0-9-]+|premium_photo-[a-zA-Z0-9-]+)/);
       
-      let finalUrl = '';
-
-      if (match && match[0] && !currentUrl.includes('{unsplashId}')) {
-        // Вариант 1: Жесткая склейка оригинального ID со слэшем и правильным поддоменом images.
-        finalUrl = 'https://unsplash.com' + match[0] + '?auto=format&fit=crop&w=1200&q=80';
-      } else {
-        // Вариант 2: Жесткая склейка поискового URL со слэшем
-        const searchQuery = encodeURIComponent(title.toLowerCase());
-        const randomSig = Math.floor(Math.random() * 100000);
+      // Проверяем, что ссылка действительно содержит кривой домен unsplash.com
+      if (currentUrl.includes('unsplash.com')) {
         
-        finalUrl = 'https://unsplash.comphoto-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80&sig=' + randomSig + '&q_search=' + searchQuery;
-      }
+        // 1. Сначала отсекаем всё, что идет после знака вопроса (параметры)
+        const urlWithoutParams = currentUrl.split('?')[0]; 
+        // Результат: "https://unsplash.com1546069901-ba9599a7e63c"
 
-      // Обновляем документ в MongoDB
-      await collection.updateOne(
-        { _id: recipe._id },
-        { $set: { imgSource: finalUrl } }
-      );
-      
-      console.log(`✅ Исправлен URL для: "${title}" -> ${finalUrl}`);
-      restoredCount++;
+        // 2. Вырезаем из этой строки кривое начало "https://unsplash.com"
+        const pureId = urlWithoutParams.replace('https://unsplash.com', ''); 
+        // Результат: "1546069901-ba9599a7e63c"
+
+        if (pureId && pureId.length > 5) {
+          // 3. Собираем ссылку в эталонном формате Unsplash через обычные плюсы
+          const correctUrl = 'https://unsplash.com/' + pureId + '?auto=format&fit=crop&w=1200&q=80';
+
+          // Обновляем документ в базе данных
+          await collection.updateOne(
+            { _id: recipe._id },
+            { $set: { imgSource: correctUrl } }
+          );
+
+          console.log('✅ Ссылка успешно пересобрана для: ' + recipe.title);
+          restoredCount++;
+        }
+      }
     }
 
-    console.log(`\n🎉 Скрипт успешно завершил работу! Проверьте фронтенд.`);
+    console.log('\n🎉 База данных полностью обновлена! Изменено документов: ' + restoredCount);
 
   } catch (error) {
-    console.error('❌ Ошибка:', error);
+    console.error('❌ Ошибка во время выполнения:', error);
   } finally {
     await CLIENT.close();
   }
