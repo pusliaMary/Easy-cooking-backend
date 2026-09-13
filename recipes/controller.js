@@ -2,31 +2,10 @@ const recipe = require('./model');
 const mongoose = require("mongoose"); 
 const { saveFile, deleteFile, getPublicIdFromUrl } = require('../file/upload');
 
-// Функция-хелпер для генерации уникальной картинки Unsplash по названию блюда
-const getSmartImageUrl = (imgSource, title) => {
-    const currentUrl = imgSource || '';
-    // Если ссылка пустая, содержит старый мусор или наш одинаковый шаблон салата
-    if (!currentUrl || currentUrl.includes('1546069901-ba9599a7e63c') || currentUrl.includes('://unsplash.com')) {
-        const query = encodeURIComponent(title.toLowerCase().replace(/ /g, '-'));
-        // Возвращаем уникальный для каждого блюда URL (параметр q_search заставит Unsplash выдать нужное фото)
-        return 'https://unsplash.com' + query;
-    }
-    // Если в базе уже лежит нормальная ссылка (например, новая от Cloudinary) — возвращаем её без изменений
-    return currentUrl;
-};
-
 module.exports.getRecipes = async (req, res) => {
     try {
-        // Используем .lean(), чтобы Mongoose вернул чистые JS-объекты, которые можно мутировать
-        const recipes = await recipe.find().lean();
-        
-        // Проходимся по каждому рецепту и на лету делаем картинки уникальными
-        const updatedRecipes = recipes.map(item => {
-            item.imgSource = getSmartImageUrl(item.imgSource, item.title);
-            return item;
-        });
-
-        res.status(200).send(updatedRecipes);
+        const recipes = await recipe.find();
+        res.status(200).send(recipes);
     } catch (err) {
         res.status(500).send({ error: "Ошибка при получении рецептов" });
     }
@@ -38,15 +17,10 @@ module.exports.getRecipeById = async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).send({ error: "Некорректный формат ID рецепта" });
         }
-        
-        const foundRecipe = await recipe.findById(id).lean();
+        const foundRecipe = await recipe.findById(id);
         if (!foundRecipe) {
             return res.status(404).send({ error: "Рецепт с указанным ID не найден" });
         }
-
-        // Подменяем картинку для конкретного рецепта, если она битая
-        foundRecipe.imgSource = getSmartImageUrl(foundRecipe.imgSource, foundRecipe.title);
-
         res.status(200).send(foundRecipe);
     } catch (err) {
         console.error("Error getting recipe by id:", err.message);
@@ -54,7 +28,6 @@ module.exports.getRecipeById = async (req, res) => {
     }
 };
 
-// СОЗДАНИЕ РЕЦЕПТА + ЗАГРУЗКА В CLOUDINARY
 module.exports.saveRecipe = async (req, res) => {
     try {
         const recipeData = { ...req.body };
@@ -79,7 +52,6 @@ module.exports.saveRecipe = async (req, res) => {
     }
 };
 
-// ОБНОВЛЕНИЕ РЕЦЕПТА + ЗАМЕНА КАРТИНКИ
 module.exports.editRecipe = async (req, res) => {
     try {
         const { id } = req.params; 
@@ -122,7 +94,6 @@ module.exports.editRecipe = async (req, res) => {
     }
 };
 
-// УДАЛЕНИЕ РЕЦЕПТА + УДАЛЕНИЕ КАРТИНКИ ИЗ ОБЛАКА
 module.exports.deleteRecipe = async (req, res, next) => {
     try {
         const { id } = req.params; 
