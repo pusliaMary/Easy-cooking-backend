@@ -17,32 +17,31 @@ async function run() {
 
     let restoredCount = 0;
 
-    for (const recipe of recipes) {
+        for (const recipe of recipes) {
       const currentUrl = recipe.imgSource || '';
-      
-      // Проверяем, что ссылка действительно содержит кривой домен unsplash.com
-      if (currentUrl.includes('unsplash.com')) {
-        
-        // 1. Сначала отсекаем всё, что идет после знака вопроса (параметры)
-        const urlWithoutParams = currentUrl.split('?')[0]; 
-        // Результат: "https://unsplash.com1546069901-ba9599a7e63c"
+      const title = recipe.title || 'food';
 
-        // 2. Вырезаем из этой строки кривое начало "https://unsplash.com"
-        const pureId = urlWithoutParams.replace('https://unsplash.com', ''); 
-        // Результат: "1546069901-ba9599a7e63c"
+      if (currentUrl.includes('unsplash.com')) {
+        // 1. Отсекаем параметры после знака "?"
+        const cleanPath = currentUrl.split('?')[0]; 
+
+        // 2. Разбиваем строку по слэшам "/"
+        const urlParts = cleanPath.split('/'); 
+
+        // 3. Берем самый последний элемент массива (это гарантированно будут только цифры ID)
+        const pureId = urlParts[urlParts.length - 1]; 
 
         if (pureId && pureId.length > 5) {
-          // 3. Собираем ссылку в эталонном формате Unsplash через обычные плюсы
-          const correctUrl = 'https://unsplash.com/' + pureId + '?auto=format&fit=crop&w=1200&q=80';
+          // 4. Собираем идеальную ссылку с правильным доменом и префиксом
+          const correctUrl = 'https://images.unsplash.com/photo-' + pureId + '?auto=format&fit=crop&w=1200&q=80';
 
-          // Обновляем документ в базе данных
+          // Обновляем базу данных
           await collection.updateOne(
             { _id: recipe._id },
             { $set: { imgSource: correctUrl } }
           );
 
-          console.log('✅ Ссылка успешно пересобрана для: ' + recipe.title);
-          restoredCount++;
+          console.log('✅ Идеально собран URL для: ' + title + ' -> ' + correctUrl);
         }
       }
     }
