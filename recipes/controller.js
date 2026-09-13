@@ -2,10 +2,31 @@ const recipe = require('./model');
 const mongoose = require("mongoose"); 
 const { saveFile, deleteFile, getPublicIdFromUrl } = require('../file/upload');
 
+// Функция-хелпер для генерации уникальной картинки Unsplash по названию блюда
+const getSmartImageUrl = (imgSource, title) => {
+    const currentUrl = imgSource || '';
+    // Если ссылка пустая, содержит старый мусор или наш одинаковый шаблон салата
+    if (!currentUrl || currentUrl.includes('1546069901-ba9599a7e63c') || currentUrl.includes('://unsplash.com')) {
+        const query = encodeURIComponent(title.toLowerCase().replace(/ /g, '-'));
+        // Возвращаем уникальный для каждого блюда URL (параметр q_search заставит Unsplash выдать нужное фото)
+        return 'https://unsplash.com' + query;
+    }
+    // Если в базе уже лежит нормальная ссылка (например, новая от Cloudinary) — возвращаем её без изменений
+    return currentUrl;
+};
+
 module.exports.getRecipes = async (req, res) => {
     try {
-        const recipes = await recipe.find();
-        res.status(200).send(recipes);
+        // Используем .lean(), чтобы Mongoose вернул чистые JS-объекты, которые можно мутировать
+        const recipes = await recipe.find().lean();
+        
+        // Проходимся по каждому рецепту и на лету делаем картинки уникальными
+        const updatedRecipes = recipes.map(item => {
+            item.imgSource = getSmartImageUrl(item.imgSource, item.title);
+            return item;
+        });
+
+        res.status(200).send(updatedRecipes);
     } catch (err) {
         res.status(500).send({ error: "Ошибка при получении рецептов" });
     }
@@ -17,10 +38,15 @@ module.exports.getRecipeById = async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).send({ error: "Некорректный формат ID рецепта" });
         }
-        const foundRecipe = await recipe.findById(id);
+        
+        const foundRecipe = await recipe.findById(id).lean();
         if (!foundRecipe) {
             return res.status(404).send({ error: "Рецепт с указанным ID не найден" });
         }
+
+        // Подменяем картинку для конкретного рецепта, если она битая
+        foundRecipe.imgSource = getSmartImageUrl(foundRecipe.imgSource, foundRecipe.title);
+
         res.status(200).send(foundRecipe);
     } catch (err) {
         console.error("Error getting recipe by id:", err.message);
@@ -33,17 +59,14 @@ module.exports.saveRecipe = async (req, res) => {
     try {
         const recipeData = { ...req.body };
 
-        // Если в запросе пришли массивы строк, отправленные как FormData, их нужно распарсить
         if (typeof recipeData.ingredients === 'string') recipeData.ingredients = JSON.parse(recipeData.ingredients);
         if (typeof recipeData.steps === 'string') recipeData.steps = JSON.parse(recipeData.steps);
         if (typeof recipeData.keyWords === 'string') recipeData.keyWords = JSON.parse(recipeData.keyWords);
         if (typeof recipeData.whatProtein === 'string') recipeData.whatProtein = JSON.parse(recipeData.whatProtein);
 
-        // Ищем загруженный файл картинки
         const imageFile = req.files?.find(file => file.fieldname === 'uploadImage' || file.fieldname === 'image');
         
         if (imageFile) {
-            // Оптимизируем через sharp и получаем url из Cloudinary
             recipeData.imgSource = await saveFile(imageFile);
         }
 
@@ -66,7 +89,6 @@ module.exports.editRecipe = async (req, res) => {
             return res.status(400).send({ error: 'Некорректный формат ID рецепта' });
         }
 
-        // Парсим входящие JSON-строки из FormData (если применимо)
         if (typeof updateData.ingredients === 'string') updateData.ingredients = JSON.parse(updateData.ingredients);
         if (typeof updateData.steps === 'string') updateData.steps = JSON.parse(updateData.steps);
         if (typeof updateData.keyWords === 'string') updateData.keyWords = JSON.parse(updateData.keyWords);
@@ -77,16 +99,13 @@ module.exports.editRecipe = async (req, res) => {
             return res.status(404).send({ error: 'Recipe not found' });
         }
 
-        // Проверяем, прикрепил ли пользователь новый файл картинки на замену
         const newImageFile = req.files?.find(file => file.fieldname === 'uploadImage' || file.fieldname === 'image');
         
         if (newImageFile) {
-            // 1. Удаляем старую картинку из Cloudinary, чтобы не копить мусор
             if (existingRecipe.imgSource) {
                 const oldPublicId = getPublicIdFromUrl(existingRecipe.imgSource);
                 if (oldPublicId) await deleteFile(oldPublicId);
             }
-            // 2. Сохраняем новую картинку в Cloudinary
             updateData.imgSource = await saveFile(newImageFile);
         }
 
@@ -119,7 +138,6 @@ module.exports.deleteRecipe = async (req, res, next) => {
             throw new Error('Рецепт с указанным ID не найден в базе данных');
         }
 
-        // Удаляем связанный файл изображения из Cloudinary перед удалением из Монги
         if (foundRecipe.imgSource) {
             const publicId = getPublicIdFromUrl(foundRecipe.imgSource);
             if (publicId) {
