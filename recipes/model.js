@@ -5,7 +5,7 @@ const CATEGORIES = [
   "salad",
   "soup",
   "garnish",
-  "main Course",
+  "mainCourse",
   "dessert",
   "drink",
 ];
