@@ -5,7 +5,8 @@ const { promisify } = require('util');
 const cloudinary = require('./cloudinary');
 
 const unlinkAsync = promisify(fs.unlink);
-const TEMP_DIR = path.join(__dirname, '../temp');
+const TEMP_DIR = path.join(import.meta.dirname, '../temp');
+
 
 if (!fs.existsSync(TEMP_DIR)) {
     fs.mkdirSync(TEMP_DIR, { recursive: true });

@@ -2,7 +2,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const TEMP_DIR = path.join(__dirname, '../temp');
+const TEMP_DIR = path.join(import.meta.dirname, '../temp');
 
 if (!fs.existsSync(TEMP_DIR)) {
     fs.mkdirSync(TEMP_DIR, { recursive: true });
