@@ -1,24 +1,24 @@
-const { Router } = require("express");
-const {
+import { Router } from "express";
+import {
   getRecipes,
   saveRecipe,
   deleteRecipe,
   editRecipe,
   getRecipeById,
-} = require("./controller");
-const { authenticate } = require('../auth/auth.middleware');
-const createStorage = require('../file/uploadMiddleware'); // Импортируем вашу мидлвару для загрузки
+} from "./controller.js";
+import { authenticate } from '../auth/auth.middleware.js';
+import createStorage from '../file/uploadMiddleware.js';
 
-const upload = createStorage(); // Инициализируем multer
+const upload = createStorage();
 const router = Router();
 
-// Публичные эндпоинты (доступны всем пользователям)
 router.get("/", getRecipes);
 router.get("/:id", getRecipeById);
 
-// Приватные эндпоинты (требуют авторизации и обрабатывают FormData с файлами)
+
 router.post("/", authenticate, upload.any(), saveRecipe);
 router.put("/:id", authenticate, upload.any(), editRecipe);
 router.delete("/:id", authenticate, deleteRecipe);
 
-module.exports = router;
+export default router;
+

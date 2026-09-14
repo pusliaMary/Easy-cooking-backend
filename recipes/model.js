@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const PROTEINS = ["meat", "poultry", "seafood", "vegan"];
 const CATEGORIES = [
@@ -100,4 +100,4 @@ const recipeSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model("Recipe", recipeSchema);
+export default mongoose.model("Recipe", recipeSchema);

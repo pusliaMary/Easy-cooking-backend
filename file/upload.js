@@ -1,8 +1,9 @@
-const sharp = require('sharp');
-const fs = require('fs');
-const path = require('path');
-const { promisify } = require('util');
-const cloudinary = require('./cloudinary');
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
+import { promisify } from 'util';
+import cloudinary from './cloudinary.js';
+
 
 const unlinkAsync = promisify(fs.unlink);
 const TEMP_DIR = path.join(import.meta.dirname, '../temp');
@@ -28,7 +29,7 @@ const generateFileName = (originalName) => {
 };
 
 
-module.exports.getPublicIdFromUrl = (url) => {
+export const getPublicIdFromUrl = (url) => {
     if (!url || !url.includes('://cloudinary.com')) return null;
     const parts = url.split('/');
     const folderAndFile = parts.slice(parts.indexOf('recipes-uploads')).join('/'); // Подставьте имя вашей папки в Cloudinary
@@ -36,7 +37,7 @@ module.exports.getPublicIdFromUrl = (url) => {
 };
 
 
-module.exports.saveFile = async (file) => {
+export const saveFile = async (file) => {
     try {
         const optimizedFileName = generateFileName(file.originalname);
         const tempOutputPath = path.join(TEMP_DIR, optimizedFileName);
@@ -81,7 +82,7 @@ module.exports.saveFile = async (file) => {
     }
 };
 
-module.exports.deleteFile = async (cloudinaryPublicId) => {
+export const deleteFile = async (cloudinaryPublicId) => {
     try {
         await cloudinary.uploader.destroy(cloudinaryPublicId);
     } catch (err) {

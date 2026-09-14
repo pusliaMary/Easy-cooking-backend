@@ -1,8 +1,8 @@
-const recipe = require('./model');
-const mongoose = require("mongoose"); 
-const { saveFile, deleteFile, getPublicIdFromUrl } = require('../file/upload');
+import recipe from './model.js';
+import mongoose from 'mongoose'; 
+import { saveFile, deleteFile, getPublicIdFromUrl } from '../file/upload.js';
 
-module.exports.getRecipes = async (req, res) => {
+export const getRecipes = async (req, res) => {
     try {
         const recipes = await recipe.find();
         res.status(200).send(recipes);
@@ -11,7 +11,7 @@ module.exports.getRecipes = async (req, res) => {
     }
 };
 
-module.exports.getRecipeById = async (req, res) => {
+export const getRecipeById = async (req, res) => {
     try {
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -28,7 +28,7 @@ module.exports.getRecipeById = async (req, res) => {
     }
 };
 
-module.exports.saveRecipe = async (req, res) => {
+export const saveRecipe = async (req, res) => {
     try {
         const recipeData = { ...req.body };
 
@@ -52,7 +52,7 @@ module.exports.saveRecipe = async (req, res) => {
     }
 };
 
-module.exports.editRecipe = async (req, res) => {
+export const editRecipe = async (req, res) => {
     try {
         const { id } = req.params; 
         const updateData = { ...req.body };
@@ -94,7 +94,7 @@ module.exports.editRecipe = async (req, res) => {
     }
 };
 
-module.exports.deleteRecipe = async (req, res, next) => {
+export const deleteRecipe = async (req, res, next) => {
     try {
         const { id } = req.params; 
 

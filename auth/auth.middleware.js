@@ -1,11 +1,10 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
-module.exports.generateTokens = (username) => {
+export const generateTokens = (username) => {
   const accessToken = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '24h' });
   return { accessToken };
 };
-
-module.exports.authenticate = (req, res, next) => {
+export const authenticate = (req, res, next) => {
   const token = req.cookies ? req.cookies.authToken : null;
 
   if (!token) {

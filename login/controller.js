@@ -1,7 +1,7 @@
-const { generateTokens } = require("../auth/auth.middleware");
-require("dotenv").config();
+import { generateTokens } from "../auth/auth.middleware.js";
+import "dotenv/config"
 
-module.exports.authController = {
+export const authController = {
  async login(req, res) {
   try {
     const { username, password } = req.body;

@@ -1,16 +1,18 @@
-const express = require('express');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import 'dotenv/config'; // Автоматически загружает переменные из .env
+
+// ИСПРАВЛЕНО: Импортируем роутеры и мидлвары с обязательным указанием расширения .js
+import authRoutes from './login/routes.js';
+import routes from './recipes/routes.js';
+import { notFound, errorHandler } from './auth/error.middleware.js';
+
 const app = express();
-const mongoose = require('mongoose');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-require('dotenv').config();
 
 mongoose.set('strictQuery', false);
 const PORT = process.env.PORT || 8000;
-
-const authRoutes = require('./login/routes');
-const routes = require('./recipes/routes');
-const { notFound, errorHandler } = require('./auth/error.middleware');
 
 const allowedOrigins = [
     "https://easy-cooking-back.onrender.com",
@@ -35,7 +37,8 @@ const corsOptions = {
 
 app.disable('x-powered-by');
 app.use(cors(corsOptions));
-app.options('*any', cors(corsOptions));
+
+app.options('/*any', cors(corsOptions));
 
 app.use(cookieParser());
 app.use(express.json());
@@ -44,7 +47,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', authRoutes);
 app.use('/api/recipes', routes);
 
-app.use('/uploads', express.static('uploads'));
+import path from 'path';
+app.use('/uploads', express.static(path.join(import.meta.dirname, 'uploads')));
 
 app.use(notFound);
 app.use(errorHandler);
@@ -64,3 +68,4 @@ const startServer = async () => {
 };
 
 startServer();
+
