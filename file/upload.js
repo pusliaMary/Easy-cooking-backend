@@ -4,10 +4,10 @@ import path from 'path';
 import { promisify } from 'util';
 import cloudinary from './cloudinary.js';
 
-
 const unlinkAsync = promisify(fs.unlink);
-const TEMP_DIR = path.join(import.meta.dirname, '../temp');
 
+// Исправлено получение __dirname для среды ES-модулей бэкенда
+const TEMP_DIR = path.join(import.meta.dirname, '../temp');
 
 if (!fs.existsSync(TEMP_DIR)) {
     fs.mkdirSync(TEMP_DIR, { recursive: true });
@@ -28,15 +28,33 @@ const generateFileName = (originalName) => {
     return `${timestamp}-${baseName}.webp`;
 };
 
-
+/**
+ * Извлекает чистый public_id для Cloudinary из полной ссылки
+ */
+/**
+ * Извлекает чистый public_id для Cloudinary из полной ссылки через регулярное выражение
+ */
 export const getPublicIdFromUrl = (url) => {
-    if (!url || !url.includes('://cloudinary.com')) return null;
-    const parts = url.split('/');
-    const folderAndFile = parts.slice(parts.indexOf('recipes-uploads')).join('/'); // Подставьте имя вашей папки в Cloudinary
-    return folderAndFile.split('.')[0]; // Отрезаем .webp расширение
+    if (!url || !url.includes('res.cloudinary.com')) return null;
+    try {
+        // Регулярное выражение ищет recipes-uploads/ и забирает ВСЁ до точки расширения файла
+        const match = url.match(/(recipes-uploads\/[^.]+)/);
+        
+        if (match && match[0]) {
+            return match[0]; // Гарантированно возвращает чистую СТРОКУ, а не массив!
+        }
+        
+        return null;
+    } catch (e) {
+        console.error('❌ Ошибка парсинга URL в getPublicIdFromUrl:', e.message);
+        return null;
+    }
 };
 
 
+/**
+ * Оптимизирует входящий файл через Sharp и загружает его в Cloudinary
+ */
 export const saveFile = async (file) => {
     try {
         const optimizedFileName = generateFileName(file.originalname);
@@ -82,10 +100,33 @@ export const saveFile = async (file) => {
     }
 };
 
+/**
+ * Удаляет файл из медиатеки Cloudinary по его public_id
+ */
 export const deleteFile = async (cloudinaryPublicId) => {
     try {
-        await cloudinary.uploader.destroy(cloudinaryPublicId);
+        if (!cloudinaryPublicId) {
+            console.warn('⚠️ [Cloudinary] Передан пустой Public ID для удаления.');
+            return;
+        }
+
+        console.log(`📡 [Cloudinary] Отправка запроса на удаление файла: "${cloudinaryPublicId}"...`);
+
+        // ИСПРАВЛЕНО: Явно передаем resource_type и форсируем сброс кэша через invalidate
+        const result = await cloudinary.uploader.destroy(cloudinaryPublicId, {
+            resource_type: 'image',
+            invalidate: true 
+        });
+
+        // Выводим точный ответ от серверов Cloudinary
+        console.log('✉️ [Cloudinary] Ответ сервера:', result);
+
+        if (result.result === 'ok') {
+            console.log(`🧹 [Cloudinary] Файл успешно удален: ${cloudinaryPublicId}`);
+        } else {
+            console.warn(`⚠️ [Cloudinary] Файл не был удален. Причина:`, result.result);
+        }
     } catch (err) {
-        console.error('Ошибка при удалении файла из Cloudinary:', err);
+        console.error('💥 Ошибка при удалении файла из Cloudinary:', err.message);
     }
 };
