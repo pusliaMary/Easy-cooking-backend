@@ -1,10 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-// jose требует, чтобы секрет был в виде Uint8Array для нативного крипто-движка
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export const generateTokens = async (username) => {
-  // Нативная асинхронная генерация токена на 2 часа
   const accessToken = await new SignJWT({ username })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -22,7 +20,6 @@ export const authenticate = async (req, res, next) => {
   }
 
   try {
-    // Нативная асинхронная проверка токена
     const { payload } = await jwtVerify(token, JWT_SECRET);
     req.username = payload.username;
     next();
